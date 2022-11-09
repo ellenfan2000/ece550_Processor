@@ -1,4 +1,4 @@
-# ece550_Processor
+# ECE550_Processor CP4
 
 Name: Ellen Fan, Zhengge Tang
 
