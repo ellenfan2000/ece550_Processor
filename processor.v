@@ -140,7 +140,7 @@ module processor(
 	 wire [31:0] Regwrite_temp, r30_out;
 	 
 	 wire ctrl_overflow;
-	 d30 d30out(overflow, q_imem[31:27], q_imem[6:2], r30_out, ctrl_overflow);
+	 d30 d30out(overflow, q_imem[31:27], aluop, r30_out, ctrl_overflow);
 	 mux_32bit mx1(ALUout, q_dmem, ctrl_lw, Regwrite_temp);	 
 	 mux_32bit mx2(Regwrite_temp, r30_out, ctrl_overflow, data_writeReg);
 	 mux_5bit Rw(q_imem[26:22], 5'b11110, ctrl_overflow, ctrl_writeReg);
