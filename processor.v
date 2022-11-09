@@ -136,12 +136,14 @@ module processor(
 	 assign wren = ctrl_DMwe;
 	 assign address_dmem = ALUout[11:0];
 	 assign data = data_readRegB;
-	 
+
 	 wire [31:0] Regwrite_temp, r30_out;
-	 d30 d30out(overflow, q_imem[31:27], q_imem[6:2], r30_out);
-	 mux_32bit m1(ALUout, q_dmem, ctrl_lw, Regwrite_temp);	 
-	 mux_32bit m2(Regwrite_temp, r30_out, overflow, data_writeReg);
-	 mux_5bit Rw(q_imem[26:22], 5'b11110, overflow, ctrl_writeReg);
+	 
+	 wire ctrl_overflow;
+	 d30 d30out(overflow, q_imem[31:27], q_imem[6:2], r30_out, ctrl_overflow);
+	 mux_32bit mx1(ALUout, q_dmem, ctrl_lw, Regwrite_temp);	 
+	 mux_32bit mx2(Regwrite_temp, r30_out, ctrl_overflow, data_writeReg);
+	 mux_5bit Rw(q_imem[26:22], 5'b11110, ctrl_overflow, ctrl_writeReg);
 	 
 	 
 	 
