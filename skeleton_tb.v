@@ -25,7 +25,7 @@ module skeleton_tb(); // testbenches take no arguments
 	integer i;
 
 	// The test skeleton
-	skeleton tests(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_clock,
+	skeleton_test tests(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_clock,
 			  // Imem
 			  address_imem,                   // O: The address of the data to get from imem
 			  q_imem,                         // I: The data from imem
