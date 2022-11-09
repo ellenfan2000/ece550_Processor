@@ -21,16 +21,21 @@ module skeleton(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_c
     output imem_clock, dmem_clock, processor_clock, regfile_clock;
 //
 	 
-	 wire half,quater;
+	 wire half,quater,eight;
 	 clock_divider half_divider(clock, reset, half); 
 	 clock_divider quater_divider(half, reset, quater); 
+	 clock_divider quater_divider(quater, reset, eight); 
 	 
 	 
+//	 assign imem_clock = clock;
+//	 assign dmem_clock = clock;
+//	 assign processor_clock = ~quater;
+//	 assign regfile_clock = ~quater;
 	 
-	 assign imem_clock = clock;
-	 assign dmem_clock = clock;
-	 assign processor_clock = ~quater;
-	 assign regfile_clock = ~quater;
+	 assign imem_clock = half;
+	 assign dmem_clock = half;
+	 assign processor_clock = ~eight;
+	 assign regfile_clock = ~eight;
 
     /** IMEM **/
     // Figure out how to generate a Quartus syncram component and commit the generated verilog file.
