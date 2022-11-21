@@ -105,11 +105,11 @@ module processor(
 	 //J type stuffs
 	 
 	 
-	 register PCReg_read(PCnext, PC, clock, 1'b1, reset);
-	 alu PCplus(PCplus1, 32'd1,5'b00000, 5'b00000, PC, dontcare, dontcareeither, alsodontcare);
+	 register PCReg_read(PC, PCnext, clock, 1'b1, reset);
+	 alu PCplus(PC, 32'd1,5'b00000, 5'b00000, PCplus1, dontcare, dontcareeither, alsodontcare);
 
 	 
-	 assign address_imem = PCnext[11:0];
+	 //assign address_imem = PC[11:0];
 	 
 	 //31:27 opcode
 	 //26:22 rd
@@ -125,20 +125,20 @@ module processor(
 	 
 	 wire [31:0] ReadB_temp;	 
 	 assign ReadB_temp = ctrl_sw? q_imem[26:22]: q_imem[16:12];
-	 //mux_5bit Rr2(q_imem[16:12], q_imem[26:22], ctrl_sw, ctrl_readRegB);
+	 
 	 assign ctrl_readRegB = ctrl_bex? 5'b11110:ReadB_temp;
 	 
 	
 	 wire [31:0] imme, ALUin1, ALUin2, ALUout;
-	 sign_ext sx(q_imem[16:0], imme);
-	 //mux_32bit m_ALU_in (data_readRegB, imme, ctrl_ALUinB, ALUin1);
+	 sign_ext sx_I(q_imem[16:0], imme);
+	
 	 assign ALUin1 = ctrl_ALUinB? imme: data_readRegB;
 	 assign ALUin2 = ctrl_bex ? 32'b0:data_readRegA;
 	 wire isNotEqual, isLessThan, overflow; 
 	
 	 
 	 wire [4:0] aluop;
-	 //mux_5bit opc(q_imem[6:2], 5'b0, ctrl_RI, aluop);
+	 
 	 assign aluop = ctrl_RI? 5'b0: q_imem[6:2];
 	 
 	 //main ALU
@@ -158,13 +158,15 @@ module processor(
 	 
 	 wire bex_ctrl, J_ctrl;
 	 wire [31:0] target;
-	 sign_ext sx(q_imem[26:0], target);
+	 sign_ext sx_t(q_imem[26:0], target);
 	 
 	 and bex(bex_ctrl, ctrl_bex, isNotEqual);
 	 or Jtype(J_ctrl, ctrl_J, bex_ctrl);
 	 assign PCBJ = J_ctrl? target:PCbranch;
 	 
 	 assign PCnext = ctrl_Jr? data_readRegB : PCBJ;
+	 
+	 assign address_imem = PC[11:0];
 	 
 	 
 	 //data write to PC
@@ -179,7 +181,7 @@ module processor(
 	 //mux_32bit mx1(ALUout, q_dmem, ctrl_lw, Regwrite_temp);	 
 	 assign Regwrite_temp = ctrl_lw?q_dmem:ALUout;
 	 assign write_jal = ctrl_Jal? PCplus1: Regwrite_temp;
-	 assign write_setx = ctrl_setx? target: write_Jal;
+	 assign write_setx = ctrl_setx? target: write_jal;
 	 
 	 d30 d30out(overflow, q_imem[31:27], aluop, r30_out, ctrl_overflow);
 	 

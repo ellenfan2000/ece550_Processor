@@ -59,18 +59,18 @@ module skeleton_test(clock, reset, imem_clock, dmem_clock, processor_clock, regf
 	 wire half,quater;
 	 clock_divider half_divider(clock, reset, half); 
 	 clock_divider quater_divider(half, reset, quater); 
-	 clock_divider eight_divider(quater, reset, eight); 
+	 //clock_divider eight_divider(quater, reset, eight); 
 	 
 	 
-//	 assign imem_clock = clock;
-//	 assign dmem_clock = clock;
-//	 assign processor_clock = ~quater;
-//	 assign regfile_clock = ~quater;
+	 assign imem_clock = clock;
+	 assign dmem_clock = clock;
+	 assign processor_clock = ~quater;
+	 assign regfile_clock = ~quater;
 	 
-	 assign imem_clock = half;
-	 assign dmem_clock = half;
-	 assign processor_clock = ~eight;
-	 assign regfile_clock = ~eight;
+//	 assign imem_clock = half;
+//	 assign dmem_clock = half;
+//	 assign processor_clock = ~eight;
+//	 assign regfile_clock = ~eight;
 
 
     /** IMEM **/
