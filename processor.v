@@ -93,15 +93,21 @@ module processor(
 	 
 
     /* All controls */
-	 wire ctrl_sw, ctrl_ALUinB,  ctrl_RI, ctrl_DMwe, ctrl_lw; 
-	 control ctrl(q_imem[31: 27], ctrl_writeEnable, ctrl_sw, ctrl_ALUinB,  ctrl_RI, ctrl_DMwe, ctrl_lw);
+	 wire ctrl_sw, ctrl_ALUinB,  ctrl_RI, ctrl_DMwe, ctrl_lw, ctrl_Jal, 
+	 ctrl_bne, ctrl_blt, ctrl_bex, ctrl_J, ctrl_Jr, ctrl_setx; 
+	 control ctrl(q_imem[31: 27], ctrl_writeEnable, ctrl_sw, ctrl_ALUinB,  ctrl_RI, ctrl_DMwe, ctrl_lw,
+	 ctrl_Jal, ctrl_bne, ctrl_blt, ctrl_bex, ctrl_J, ctrl_Jr, ctrl_setx);
 
 	 //PC and imem
-	 wire [31:0] PC, PCnext;
+	 wire [31:0] PC, PCnext, PCplus1;
 	 wire dontcare, dontcareeither, alsodontcare;
 	 
+	 //J type stuffs
+	 
+	 
 	 register PCReg_read(PCnext, PC, clock, 1'b1, reset);
-	 alu PCplus(PCnext, 32'd1,5'b00000, 5'b00000, PC, dontcare, dontcareeither, alsodontcare);
+	 alu PCplus(PCplus1, 32'd1,5'b00000, 5'b00000, PC, dontcare, dontcareeither, alsodontcare);
+
 	 
 	 assign address_imem = PCnext[11:0];
 	 
@@ -116,35 +122,80 @@ module processor(
 	 //register and ALU 
 	 
 	 assign ctrl_readRegA = q_imem[21:17];
-	 mux_5bit Rr2(q_imem[16:12], q_imem[26:22], ctrl_sw, ctrl_readRegB);
+	 
+	 wire [31:0] ReadB_temp;	 
+	 assign ReadB_temp = ctrl_sw? q_imem[26:22]: q_imem[16:12];
+	 //mux_5bit Rr2(q_imem[16:12], q_imem[26:22], ctrl_sw, ctrl_readRegB);
+	 assign ctrl_readRegB = ctrl_bex? 5'b11110:ReadB_temp;
 	 
 	
-	 wire [31:0] imme, ALUin1, ALUout;
+	 wire [31:0] imme, ALUin1, ALUin2, ALUout;
 	 sign_ext sx(q_imem[16:0], imme);
-	 mux_32bit m_ALU_in (data_readRegB, imme, ctrl_ALUinB, ALUin1);
-	 
+	 //mux_32bit m_ALU_in (data_readRegB, imme, ctrl_ALUinB, ALUin1);
+	 assign ALUin1 = ctrl_ALUinB? imme: data_readRegB;
+	 assign ALUin2 = ctrl_bex ? 32'b0:data_readRegA;
 	 wire isNotEqual, isLessThan, overflow; 
-
-	 
+	
 	 
 	 wire [4:0] aluop;
-	 mux_5bit opc(q_imem[6:2], 5'b0, ctrl_RI, aluop);
+	 //mux_5bit opc(q_imem[6:2], 5'b0, ctrl_RI, aluop);
+	 assign aluop = ctrl_RI? 5'b0: q_imem[6:2];
 	 
-	 alu ALU(data_readRegA, ALUin1, aluop, q_imem[11:7], ALUout, isNotEqual, isLessThan, overflow);
+	 //main ALU
+	 alu ALU(ALUin2, ALUin1, aluop, q_imem[11:7], ALUout, isNotEqual, isLessThan, overflow);
 	 
+	 
+	 //PCnext
+	 wire [31:0] PCplus1plusN, PCbranch, PCBJ;
+	 alu PC1N(PCplus1, imme, 5'b00000,5'b00000,PCplus1plusN,dontcare, dontcareeither, alsodontcare );
+	
+	
+	 wire bne_ctrl, blt_ctrl, ctrl_branch;
+	 and bne(bne_ctrl, isNotEqual, ctrl_bne);
+	 and blt(blt_ctrl, isLessThan, ctrl_blt);
+	 or branch(ctrl_branch, bne_ctrl, blt_ctrl);
+	 assign PCbranch = ctrl_branch? PCplus1: PCplus1plusN;
+	 
+	 wire bex_ctrl, J_ctrl;
+	 wire [31:0] target;
+	 sign_ext sx(q_imem[26:0], target);
+	 
+	 and bex(bex_ctrl, ctrl_bex, isNotEqual);
+	 or Jtype(J_ctrl, ctrl_J, bex_ctrl);
+	 assign PCBJ = J_ctrl? target:PCbranch;
+	 
+	 assign PCnext = ctrl_Jr? data_readRegB : PCBJ;
+	 
+	 
+	 //data write to PC
 	 
 	 assign wren = ctrl_DMwe;
 	 assign address_dmem = ALUout[11:0];
 	 assign data = data_readRegB;
-
-	 wire [31:0] Regwrite_temp, r30_out;
 	 
+	 wire [31:0] Regwrite_temp, r30_out, write_jal, write_setx;
 	 wire ctrl_overflow;
-	 d30 d30out(overflow, q_imem[31:27], aluop, r30_out, ctrl_overflow);
-	 mux_32bit mx1(ALUout, q_dmem, ctrl_lw, Regwrite_temp);	 
-	 mux_32bit mx2(Regwrite_temp, r30_out, ctrl_overflow, data_writeReg);
-	 mux_5bit Rw(q_imem[26:22], 5'b11110, ctrl_overflow, ctrl_writeReg);
 	 
+	 //mux_32bit mx1(ALUout, q_dmem, ctrl_lw, Regwrite_temp);	 
+	 assign Regwrite_temp = ctrl_lw?q_dmem:ALUout;
+	 assign write_jal = ctrl_Jal? PCplus1: Regwrite_temp;
+	 assign write_setx = ctrl_setx? target: write_Jal;
+	 
+	 d30 d30out(overflow, q_imem[31:27], aluop, r30_out, ctrl_overflow);
+	 
+	 //mux_32bit mx2(write_setx, r30_out, ctrl_overflow, data_writeReg);
+	 assign data_writeReg = ctrl_overflow? r30_out: write_setx;
+	 
+	 wire[4:0] writeReg_temp;
+	 
+	 wire ctrl_r30;
+	 
+	// mux_5bit Rw(q_imem[26:22], 5'b11110, ctrl_overflow, ctrl_writeReg);
+	 or R30contr(ctrl_r30, ctrl_overflow, ctrl_setx);
+	 
+	 assign writeReg_temp = ctrl_r30? 5'b11110:q_imem[26:22];
+	 
+	 assign ctrl_writeReg = ctrl_Jal? 5'b11111:writeReg_temp;
 	 
 	 
 endmodule
