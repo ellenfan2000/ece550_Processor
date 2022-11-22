@@ -95,6 +95,7 @@ module processor(
     /* All controls */
 	 wire ctrl_sw, ctrl_ALUinB,  ctrl_RI, ctrl_DMwe, ctrl_lw, ctrl_Jal, 
 	 ctrl_bne, ctrl_blt, ctrl_bex, ctrl_J, ctrl_Jr, ctrl_setx; 
+	 
 	 control ctrl(q_imem[31: 27], ctrl_writeEnable, ctrl_sw, ctrl_ALUinB,  ctrl_RI, ctrl_DMwe, ctrl_lw,
 	 ctrl_Jal, ctrl_bne, ctrl_blt, ctrl_bex, ctrl_J, ctrl_Jr, ctrl_setx);
 
@@ -119,10 +120,12 @@ module processor(
 	 //6:2 ALUOP
 	 //16:0 immediate
 
-	 //register and ALU 
 	 
+	 
+	 //register and ALU 
 	 assign ctrl_readRegA = q_imem[21:17];
 	 
+	 //read_regB
 	 wire [31:0] ReadB_temp;	 
 	 assign ReadB_temp = ctrl_sw? q_imem[26:22]: q_imem[16:12];
 	 
@@ -148,7 +151,7 @@ module processor(
 	 //PCnext
 	 wire [31:0] PCplus1plusN, PCbranch, PCBJ;
 	 wire dontcare2, dontcareeither2, alsodontcare2;
-	 alu PC1N(PCplus1, imme, 5'b00000,5'b00000,PCplus1plusN,dontcare2, dontcareeither2, alsodontcare2 );
+	 alu PC1N(PCplus1, imme, 5'b00000,5'b00000,PCplus1plusN,dontcare2, dontcareeither2, alsodontcare2);
 	
 	
 	 wire bne_ctrl, blt_ctrl, ctrl_branch;
@@ -177,15 +180,13 @@ module processor(
 	 
 	 wire [31:0] Regwrite_temp, r30_out, write_jal, write_setx;
 	 wire ctrl_overflow;
-	 
-	 //mux_32bit mx1(ALUout, q_dmem, ctrl_lw, Regwrite_temp);	 
+	 	 
 	 assign Regwrite_temp = ctrl_lw?q_dmem:ALUout;
 	 assign write_jal = ctrl_Jal? PCplus1: Regwrite_temp;
 	 assign write_setx = ctrl_setx? target: write_jal;
 	 
 	 d30 d30out(overflow, q_imem[31:27], aluop, r30_out, ctrl_overflow);
 	 
-	 //mux_32bit mx2(write_setx, r30_out, ctrl_overflow, data_writeReg);
 	 assign data_writeReg = ctrl_overflow? r30_out: write_setx;
 	 
 	 wire[4:0] writeReg_temp;

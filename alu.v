@@ -15,7 +15,7 @@ module alu(data_operandA, data_operandB, ctrl_ALUopcode,
 	assign data_result = inner_result;
 	
 	assign isNotEqual = inner_A != inner_B;
-	assign isLessThan = inner_A < inner_B;
+	assign isLessThan = inner_A > inner_B;
 	assign overflow = inner_cout != inner_result[31];
 	
 	always @(ctrl_ALUopcode or inner_A or inner_B or ctrl_shiftamt)
