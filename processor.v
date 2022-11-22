@@ -69,7 +69,7 @@ module processor(
     ctrl_readRegB,                  // O: Register to read from port B of regfile
     data_writeReg,                  // O: Data to write to for regfile
     data_readRegA,                  // I: Data from port A of regfile
-    data_readRegB                  // I: Data from port B of regfile
+    data_readRegB                 // I: Data from port B of regfile
 	 
 );
     // Control signals
@@ -109,7 +109,7 @@ module processor(
 	 alu PCplus(PC, 32'd1,5'b00000, 5'b00000, PCplus1, dontcare, dontcareeither, alsodontcare);
 
 	 
-	 //assign address_imem = PC[11:0];
+	 assign address_imem = PC[11:0];
 	 
 	 //31:27 opcode
 	 //26:22 rd
@@ -147,18 +147,19 @@ module processor(
 	 
 	 //PCnext
 	 wire [31:0] PCplus1plusN, PCbranch, PCBJ;
-	 alu PC1N(PCplus1, imme, 5'b00000,5'b00000,PCplus1plusN,dontcare, dontcareeither, alsodontcare );
+	 wire dontcare2, dontcareeither2, alsodontcare2;
+	 alu PC1N(PCplus1, imme, 5'b00000,5'b00000,PCplus1plusN,dontcare2, dontcareeither2, alsodontcare2 );
 	
 	
 	 wire bne_ctrl, blt_ctrl, ctrl_branch;
 	 and bne(bne_ctrl, isNotEqual, ctrl_bne);
 	 and blt(blt_ctrl, isLessThan, ctrl_blt);
 	 or branch(ctrl_branch, bne_ctrl, blt_ctrl);
-	 assign PCbranch = ctrl_branch? PCplus1: PCplus1plusN;
+	 assign PCbranch = ctrl_branch? PCplus1plusN:PCplus1;
 	 
 	 wire bex_ctrl, J_ctrl;
 	 wire [31:0] target;
-	 sign_ext sx_t(q_imem[26:0], target);
+	 sign_ext26 sx_t(q_imem[26:0], target);
 	 
 	 and bex(bex_ctrl, ctrl_bex, isNotEqual);
 	 or Jtype(J_ctrl, ctrl_J, bex_ctrl);
@@ -166,7 +167,6 @@ module processor(
 	 
 	 assign PCnext = ctrl_Jr? data_readRegB : PCBJ;
 	 
-	 assign address_imem = PC[11:0];
 	 
 	 
 	 //data write to PC

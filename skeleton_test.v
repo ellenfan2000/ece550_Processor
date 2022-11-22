@@ -28,8 +28,6 @@ module skeleton_test(clock, reset, imem_clock, dmem_clock, processor_clock, regf
         data_writeReg,                  // O: Data to write to for regfile
         o_data_readRegA,                  // I: Data from port A of regfile
        o_data_readRegB                   // I: Data from port B of regfile
-
-
 );
     input clock, reset;
     /* 

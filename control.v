@@ -46,7 +46,7 @@ module control(opcode,
 	or RWE(ctrl_Rwe, rtype, addi, lw, jal, setx);
 	or set_sw(ctrl_sw, sw, bne, jr, blt);
 	or ALUinB(ctrl_ALUinB, addi, lw, sw);
-	or RI(ctrl_RI, addi, lw, sw);
+	or RI(ctrl_RI, addi, lw, sw, j, bne, jal, jr, blt, bex, setx); //1 except R type
 	assign ctrl_DMWE = sw;
 	assign ctrl_lw = lw;
 	assign ctrl_jal = jal;
