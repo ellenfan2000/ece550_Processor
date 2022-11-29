@@ -66,7 +66,7 @@ module skeleton_tb(); // testbenches take no arguments
 	
     end
 	 always 
-       	#12 clock = ~clock;
+       	#8 clock = ~clock;
 
 	
 endmodule

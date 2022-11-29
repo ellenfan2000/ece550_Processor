@@ -60,10 +60,10 @@ module skeleton_test(clock, reset, imem_clock, dmem_clock, processor_clock, regf
 	 //clock_divider eight_divider(quater, reset, eight); 
 	 
 	 
-	 assign imem_clock = clock;
-	 assign dmem_clock = clock;
-	 assign processor_clock = ~quater;
-	 assign regfile_clock = ~quater;
+	 assign imem_clock = ~clock;
+	 assign dmem_clock = ~clock;
+	 assign processor_clock = quater;
+	 assign regfile_clock = quater;
 	 
 //	 assign imem_clock = half;
 //	 assign dmem_clock = half;
