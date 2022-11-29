@@ -25,10 +25,10 @@ module skeleton(clock, reset, imem_clock, dmem_clock, processor_clock, regfile_c
 	 clock_divider half_divider(clock, reset, half); 
 	 clock_divider quater_divider(half, reset, quater); 
 	 
-	 assign imem_clock = ~clock;
-	 assign dmem_clock = ~clock;
-	 assign processor_clock = quater;
-	 assign regfile_clock = quater;
+	 assign imem_clock = clock;
+	 assign dmem_clock = clock;
+	 assign processor_clock = ~quater;
+	 assign regfile_clock = ~quater;
 	 
 
     /** IMEM **/
